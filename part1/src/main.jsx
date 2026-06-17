@@ -1,0 +1,3 @@
+import ReactDom from 'react-dom/client'
+import App from './App'
+ReactDom.createRoot(document.gerElementByID('root')).render(<App />)

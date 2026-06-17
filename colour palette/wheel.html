@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Colour Wheel</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+    canvas { border-radius: 50%; cursor: crosshair; }
+    #display { display: flex; align-items: center; gap: 16px; }
+    #swatch { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #ccc; background: #ff0000; }
+    #hexVal { font-size: 22px; font-weight: 500; font-family: monospace; }
+    #hslVal { font-size: 13px; color: #888; }
+    button { padding: 0 14px; height: 36px; border: 1px solid #ccc; background: white; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    button:hover { background: #f0f0f0; }
+    #savedRow { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 36px; }
+    .saved-dot { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; cursor: pointer; }
+    #msg { font-size: 13px; color: #888; min-height: 18px; }
+    p.hint { font-size: 13px; color: #aaa; margin: 0; }
+  </style>
+</head>
+<body>
+
+  <canvas id="wheel" width="320" height="320"></canvas>
+
+  <div id="display">
+    <div id="swatch"></div>
+    <div>
+      <div id="hexVal">#FF0000</div>
+      <div id="hslVal">hsl(0, 100%, 50%)</div>
+    </div>
+    <button onclick="copyHex()">Copy</button>
+  </div>
+
+  <div id="savedRow"></div>
+  <p class="hint">Click the wheel to pick a colour. Saved colours appear below.</p>
+  <p id="msg"></p>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const W = 320, cx = W/2, cy = W/2, R = 150, innerR = 50;
+
+    function drawWheel() {
+      const segments = 360;
+      for (let i = 0; i < segments; i++) {
+        const startAngle = (i / segments) * Math.PI * 2 - Math.PI / 2;
+        const endAngle = ((i + 1) / segments) * Math.PI * 2 - Math.PI / 2;
+        const steps = 5;
+        for (let s = 0; s < steps; s++) {
+          const l = 20 + s * 16;
+          const r1 = innerR + s * ((R - innerR) / steps);
+          const r2 = innerR + (s + 1) * ((R - innerR) / steps);
+          ctx.beginPath();
+          ctx.moveTo(cx + r1 * Math.cos(startAngle), cy + r1 * Math.sin(startAngle));
+          ctx.arc(cx, cy, r2, startAngle, endAngle);
+          ctx.arc(cx, cy, r1, endAngle, startAngle, true);
+          ctx.closePath();
+          ctx.fillStyle = `hsl(${i}, 100%, ${l}%)`;
+          ctx.fill();
+        }
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.fillStyle = '#f9f9f9';
+      ctx.fill();
+    }
+
+    drawWheel();
+
+    function getColorAt(x, y) {
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < innerR || dist > R) return null;
+      let angle = Math.atan2(dy, dx) + Math.PI / 2;
+      if (angle < 0) angle += Math.PI * 2;
+      const h = Math.round((angle / (Math.PI * 2)) * 360);
+      const steps = 5;
+      const step = Math.min(steps - 1, Math.floor((dist - innerR) / ((R - innerR) / steps)));
+      const l = 20 + step * 16;
+      return { h, s: 100, l };
+    }
+
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const a = s * Math.min(l, 1-l);
+      const f = n => {
+        const k = (n + h/30) % 12;
+        const c = l - a * Math.max(-1, Math.min(k-3, 9-k, 1));
+        return Math.round(255 * c).toString(16).padStart(2,'0');
+      };
+      return '#' + f(0) + f(8) + f(4);
+    }
+
+    let currentHex = '#FF0000';
+
+    function updateDisplay(hsl) {
+      const hex = hslToHex(hsl.h, hsl.s, hsl.l).toUpperCase();
+      currentHex = hex;
+      document.getElementById('swatch').style.background = hex;
+      document.getElementById('hexVal').textContent = hex;
+      document.getElementById('hslVal').textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      const r = canvas.getBoundingClientRect();
+      const hsl = getColorAt(e.clientX - r.left, e.clientY - r.top);
+      if (hsl) updateDisplay(hsl);
+    });
+
+    const saved = [];
+    canvas.addEventListener('click', e => {
+      const r = canvas.getBoundingClientRect();
+      const hsl = getColorAt(e.clientX - r.left, e.clientY - r.top);
+      if (hsl) { updateDisplay(hsl); saveColor(currentHex); }
+    });
+
+    function saveColor(hex) {
+      if (saved.includes(hex)) return;
+      saved.push(hex);
+      const row = document.getElementById('savedRow');
+      const dot = document.createElement('div');
+      dot.className = 'saved-dot';
+      dot.title = hex;
+      dot.style.background = hex;
+      dot.onclick = () => { currentHex = hex; document.getElementById('swatch').style.background = hex; document.getElementById('hexVal').textContent = hex; };
+      row.appendChild(dot);
+    }
+
+    function copyHex() {
+      navigator.clipboard.writeText(currentHex).then(() => {
+        const m = document.getElementById('msg');
+        m.textContent = `Copied ${currentHex}`;
+        setTimeout(() => m.textContent = '', 2000);
+      });
+    }
+  </script>
+</body>
+</html>
