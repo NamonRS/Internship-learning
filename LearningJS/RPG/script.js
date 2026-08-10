@@ -70,7 +70,7 @@ const locations =[
    },
    {
       name: "kill Monster",
-      "button text": ["Go to town squre","Go to town squre","Go to town squre"],
+      "button text": ["Go to town square","Go to town square","Go to town square"],
       "button functions": [goTown,goTown,easterEgg],
       text:"The monster screams \"ARG!!\" as it dies. You find gold and gain experince points of its existence."
    },
@@ -171,7 +171,7 @@ function isMonsterHit(){
 
 
 function dodge(){
-   text.innerText= " YOu dodge the attack from the" + monsters[fighting].name+ ".";
+   text.innerText= " You dodge the attack from the" + monsters[fighting].name+ ".";
 }
 function defeatMonster(){
    gold+=Math.floor(monsters[fighting].level*6.7);
