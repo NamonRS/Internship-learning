@@ -1,0 +1,7 @@
+node_modules/
+.env
+dist/
+build/
+.DS_Store
+LearningNextjs/my-app
+LearningNextjs/notes-app
