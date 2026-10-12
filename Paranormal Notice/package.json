@@ -1,0 +1,16 @@
+{
+  "name": "paranormal-notice",
+  "version": "1.0.0",
+  "description": "A platform for Sharing ghostly encounters",
+  "license": "ISC",
+  "author": "NamonRS",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
