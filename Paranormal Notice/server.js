@@ -16,6 +16,9 @@ const server = http.createServer(async (req, res) => {
             return await handleGet(res)
         }
     }
+    else if (req.method === 'POST'){
+        handlePost(req,res)
+    }
     else if (!req.url.startsWith('/api')){
     return await serveStatic(req, res, (__dirname,'public'))
 }
